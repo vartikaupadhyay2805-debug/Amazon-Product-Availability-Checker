@@ -1,0 +1,32 @@
+PROJECT REPORT
+Amazon Product Availability Checker – Project Report
+1. Introduction
+The Amazon Product Availability Checker is an automation tool developed in Python to help users monitor the availability of products on Amazon. Instead of manually checking the product page repeatedly, this script automatically checks the product’s stock status and alerts the user via email when the product becomes available.
+
+
+2. Objectives
+To automate Amazon product availability tracking
+
+To provide real-time notification to users through email
+
+To reduce manual effort and save time
+
+To create a lightweight, easy-to-use monitoring tool
+
+
+3. System Architecture
+The system works as follows:
+
+User Input: The user provides an Amazon product URL
+
+Periodic Fetching: The script fetches the product webpage using HTTP requests
+
+HTML Parsing: Using BeautifulSoup, it extracts the availability status
+
+Condition Check: If the product is found “In Stock”
+
+Alert System: An email notification is sent to the user
+
+Loop: The process repeats in a defined time interval
+
+
