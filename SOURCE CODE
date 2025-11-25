@@ -1,1 +1,57 @@
+Step 1: Install Required Packages
+pip install requests lxml schedule python-dotenv
 
+Step 2: Create .env file (in same folder)
+GMAIL_USER=yourgmail@gmail.com
+GMAIL_APP_PASSWORD=your-16-digit-app-password
+RECEIVER_EMAIL=your-email@gmail.com
+
+Step 3: Full Working Code (amazon_tracker.py)
+from lxml import html
+import requests
+import time
+import schedule
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+from dotenv import load_dotenv  # pip install python-dotenv
+
+# Load environment variables (recommended)
+load_dotenv()
+
+# === CONFIGURATION ===
+ASIN = "B077PWK5BT"
+URL = f"https://www.amazon.in/dp/{ASIN}"
+RECEIVER_EMAIL = os.getenv("RECEIVER_EMAIL") or "your-email@gmail.com"
+
+# Gmail credentials from .env file (never hardcode!)
+GMAIL_USER = os.getenv("GMAIL_USER")
+GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")  # Use App Password!
+
+# Headers to mimic real browser
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+}
+
+# In-stock phrases we're looking for
+IN_STOCK_PHRASES = [
+    "In stock",
+    "Only 1 left in stock",
+    "Only 2 left in stock",
+    "Only 3 left in stock",
+    "Only 4 left in stock",
+    "Only 5 left in stock",
+]
+
+def check_stock():
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    
+    try:
+        print(f"[{time.strftime('%Y-%m
