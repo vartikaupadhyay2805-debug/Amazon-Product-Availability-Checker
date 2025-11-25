@@ -1,74 +1,48 @@
 from lxml import html
 import requests
-from time import sleep
 import time
 import schedule
-import smtplib 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+from dotenv import load_dotenv  # pip install python-dotenv
 
-receiver_email_id = "EMAIL_ID_OF_USER"
+# Load environment variables (recommended)
+load_dotenv()
 
+# === CONFIGURATION ===
+ASIN = "B077PWK5BT"
+URL = f"https://www.amazon.in/dp/{ASIN}"
+RECEIVER_EMAIL = os.getenv("RECEIVER_EMAIL") or "your-email@gmail.com"
 
-def check(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
+# Gmail credentials from .env file (never hardcode!)
+GMAIL_USER = os.getenv("GMAIL_USER")
+GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")  # Use App Password!
+
+# Headers to mimic real browser
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+}
+
+# In-stock phrases we're looking for
+IN_STOCK_PHRASES = [
+    "In stock",
+    "Only 1 left in stock",
+    "Only 2 left in stock",
+    "Only 3 left in stock",
+    "Only 4 left in stock",
+    "Only 5 left in stock",
+]
+
+def check_stock():
+    session = requests.Session()
+    session.headers.update(HEADERS)
     
-    page = requests.get(url, headers = headers) 
-    for i in range(20):
-
-        sleep(3) 
-        
-        doc = html.fromstring(page.content)
-
-        XPATH_AVAILABILITY = '//div[@id ="availability"]//text()'
-        RAw_AVAILABILITY = doc.xpath(XPATH_AVAILABILITY)
-        AVAILABILITY = ''.join(RAw_AVAILABILITY).strip() if RAw_AVAILABILITY else None
-        return AVAILABILITY
-
-    
-def sendemail(ans, product):
-    GMAIL_USERNAME = "YOUR_GMAIL_ID"
-    GMAIL_PASSWORD = "YOUR_GMAIL_PASSWORD"
-    
-    recipient = receiver_email_id
-    body_of_email = ans
-    email_subject = product + ' product availability'
-    
-    s = smtplib.SMTP('smtp.gmail.com', 587) 
-     
-    s.starttls() 
-
-    s.login(GMAIL_USERNAME, GMAIL_PASSWORD) 
-    
-    headers = "\r\n".join(["from: " + GMAIL_USERNAME,
-                        "subject: " + email_subject,
-                        "to: " + recipient,
-                        "mime-version: 1.0",
-                        "content-type: text/html"])
-
-    content = headers + "\r\n\r\n" + body_of_email
-    s.sendmail(GMAIL_USERNAME, recipient, content)
-    s.quit() 
-
-
-def ReadAsin():
-    Asin = 'B077PWK5BT' 
-    url = "https://www.amazon.in/dp/" + Asin
-    print ("Processing: "+url)
-    ans = check(url)
-    arr = [
-        'Only 1 left in stock.',
-        'Only 2 left in stock.',
-        'In stock.']
-    print(ans)
-    if ans in arr:
-        sendemail(ans, Asin) 
- 
-def job():
-    print("Tracking....") 
-    ReadAsin()
-
-schedule.every(1).minutes.do(job)
-
-while True:
-    
-    schedule.run_pending() 
-    time.sleep(1)
+    try:
+        print(f"[{time.strftime('%Y-%m
